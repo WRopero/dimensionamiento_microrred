@@ -1,6 +1,6 @@
 #modelo paneles
 
-def panel(area, irradiance, eficiencia, Npv, temperatura):
+def panel(irradiance, Npv, temperatura):
     """
     función que cálcula la producción del panel
     """

@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 from pyomo.opt import *
 
-def modelo(bd):
+def modelo(bd, n_pv, n_dg, p_dg, min_dg, efi_dg, lpsp, p_bat):
     """
     Par aobtener el modelo de optimización
     """
@@ -18,19 +18,18 @@ def modelo(bd):
     load = {i: round(carga[i],4) for i in range(len(carga))}
     demanda_total = sum(load.values())
     # Potencia solar
-    area_pv = 4.0
-    eficiencia_pv = 0.18
-    Npv = 1.0
+    
+    Npv = n_pv
     generacion_pv = {
-        i: round(t.panel(area_pv, gi_pv[i], eficiencia_pv, Npv, temperatura[i]),4)
+        i: round(t.panel(gi_pv[i],  Npv, temperatura[i]),4)
         for i in range(len(gi_pv))
     }
     ############################################################################################
     # Potencia Diésel
     # Datos diesel
-    eficiencia_dg = 0.95
-    Ndg = 2
-    potencia = 1.0
+    eficiencia_dg = efi_dg
+    Ndg =  n_dg
+    potencia = p_dg
     generacion_diesel = {
         i: round(t.diesel(eficiencia_dg, potencia, Ndg),4)
         for i in range(len(load))
@@ -38,23 +37,23 @@ def modelo(bd):
     ############################################################################################
     # Parámetros generales de restricción
     # Máxima LPSP pérmitida en porcentaje %
-    max_lpsp = 0.2
+    max_lpsp = lpsp
 
     # Parámetro penalizada auxiliar
     val_aux_penalizado = potencia*Ndg
     val_aux_bateria = 0.1
 
     # % mínimo diésel
-    per_min_dg = 0.30
+    per_min_dg = min_dg
 
     # Solo batería restricciones
     per_min_bat = 0.2  # Mínimo porcentaje permitido de la batería
-    PB_rate_kW = 20  # Potencia nominal de la batería
+    PB_rate_kW = p_bat  # Potencia nominal de la batería
     SOC_min = PB_rate_kW * per_min_bat  # Capacidad mínima de potencia permitida
     SOC_max = PB_rate_kW * 1  # Capacidad máxima permitida en la batería
     SOC_inicial = PB_rate_kW * 1 # Estado inicial de la batería en potenciá (100% del PB_rate_kW)
-    max_ciclos_descarga = 1000  # Máximo número de ciclos de carga para la batería
-    max_ciclos_carga = 1000  # Mínimo ciclos de carga para la batería
+    max_ciclos_descarga = 100000  # Máximo número de ciclos de carga para la batería
+    max_ciclos_carga = 100000  # Mínimo ciclos de carga para la batería
     self_discharge_coefficient = round(0.2 / 24, 4) # Coeficiente de autodescarga para una hora
     efficiency_inversor = 0.95 # Eficiencia del inversor, se utiliza par ala conversión DC/AC
     efficiency_charging = 0.90  # Eficiencia en el estado de carga
@@ -527,4 +526,4 @@ def modelo(bd):
     model.max_ciclos_carga_descarga_ = pyo.Constraint(
         model.variables, model.times, rule=max_ciclos_carga_descarga)
 
-    return model, generacion_pv, generacion_diesel
+    return model, generacion_pv, generacion_diesel, load
