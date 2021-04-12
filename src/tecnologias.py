@@ -12,7 +12,7 @@ def panel(irradiance, Npv, temperatura):
     fpv = 0.85
     Ppv = Npv*p_pv_stc*(irradiance/G_stc)*t_1*fpv
 
-    return abs(Ppv)
+    return abs(Ppv/1000)
 
 def diesel(eficiencia, potencia, Ndg):
     """
