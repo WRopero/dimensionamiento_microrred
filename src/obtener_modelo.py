@@ -284,7 +284,7 @@ def modelo(bd):
                                                 rule=min_state_of_charge)
 
 
-    % time
+    #
     def max_state_of_charge(model, t):
         """
         Control del máximo estado de carga de la batería
