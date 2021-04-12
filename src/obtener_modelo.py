@@ -10,7 +10,7 @@ def modelo(bd):
     """
 
 
-    temperatura = bd[['Outside Temperature Impute C']]
+    temperatura = bd[['Outside Temperature Impute C']].to_dict()["Outside Temperature Impute C"]
     dates = bd[['hora', 'dia', 'mes']]
     radiacion = bd[['Solar Radiation Impute']].to_dict()["Solar Radiation Impute"]
     gi_pv = {i: round(radiacion[i],4) for i in range(len(radiacion))}
@@ -22,7 +22,7 @@ def modelo(bd):
     eficiencia_pv = 0.18
     Npv = 1.0
     generacion_pv = {
-        i: round(t.panel(area_pv, gi_pv[i], eficiencia_pv, Npv),4)
+        i: round(t.panel(area_pv, gi_pv[i], eficiencia_pv, Npv, temperatura[i]),4)
         for i in range(len(gi_pv))
     }
     ############################################################################################
@@ -527,4 +527,4 @@ def modelo(bd):
     model.max_ciclos_carga_descarga_ = pyo.Constraint(
         model.variables, model.times, rule=max_ciclos_carga_descarga)
 
-    return model
+    return model, generacion_pv, generacion_diesel
