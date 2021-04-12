@@ -427,103 +427,101 @@ def modelo(bd, n_pv, n_dg, p_dg, min_dg, efi_dg, lpsp, p_bat):
                                                 rule=aux_rule_bat_descarga)
 
 
-#    def conteo_ciclos_lineal_descarga(model, i, t):
-#        """
-#        Restricción auxiliar de capacidad 
-#        mínima de la batería sirve para 
-#        mantener el modelo de tipo líneal
-#        """
-#        if 'n_dc' in i:
-#            return (model.var_reales[i, t] == sum(model.var_reales['z_dc', t]
-#                                                for t in model.times))
-#        elif 'z_dc' in i:
-#            return model.var_reales[i, t] >= 0
-#        else:
-#            return pyo.Constraint.Skip
-#
-#
-#    model.conteo_ciclos_lineal_descarga_1 = pyo.Constraint(
-#        model.variables, model.times, rule=conteo_ciclos_lineal_descarga)
-#
-#
-#    def conteo_ciclos_lineal_descarga_dos(model, i, t):
-#        """
-#        Restricción auxiliar de capacidad 
-#        mínima de la batería sirve para 
-#        mantener el modelo de tipo líneal
-#        """
-#        if 'n_dc' in i:
-#            return (model.var_reales[i, t] <= model.restriccion['val_aux'])
-#        elif 'z_dc' in i:
-#            if t != 0:
-#                return model.var_reales[i, t] >= model.binarias[
-#                    'B_bat_d', t] - model.binarias['B_bat_d', t - 1]
-#            else:
-#                return pyo.Constraint.Skip
-#        else:
-#            return pyo.Constraint.Skip
-#
-#
-#    model.conteo_ciclos_lineal_descarga_2 = pyo.Constraint(
-#        model.variables, model.times, rule=conteo_ciclos_lineal_descarga_dos)
-#
-#    def conteo_ciclos_lineal_carga(model, i, t):
-#        """
-#        Restricción auxiliar de capacidad 
-#        mínima de la batería sirve para 
-#        mantener el modelo de tipo líneal
-#        """
-#        if 'n_cc' in i:
-#            return (model.var_reales[i, t] == sum(model.var_reales['z_cc', t]
-#                                                for t in model.times))
-#        elif 'z_cc' in i:
-#            return model.var_reales[i, t] >= 0
-#        else:
-#            return pyo.Constraint.Skip
-#
-#
-#    model.conteo_ciclos_lineal_carga_1 = pyo.Constraint(
-#        model.variables, model.times, rule=conteo_ciclos_lineal_carga)
+    def conteo_ciclos_lineal_descarga(model, i, t):
+        """
+        Restricción auxiliar de capacidad 
+        mínima de la batería sirve para 
+        mantener el modelo de tipo líneal
+        """
+        if 'n_dc' in i:
+            return (model.var_reales[i, t] == sum(model.var_reales['z_dc', t]
+                                                for t in model.times))
+        elif 'z_dc' in i:
+            return model.var_reales[i, t] >= 0
+        else:
+            return pyo.Constraint.Skip
 
 
-#   def conteo_ciclos_lineal_carga_dos(model, i, t):
-#       """
-#       Restricción auxiliar de capacidad 
-#       mínima de la batería sirve para 
-#       mantener el modelo de tipo líneal
-#       """
-#       if 'n_cc' in i:
-#           return (model.var_reales[i, t] <= model.restriccion['val_aux'])
-#       elif 'z_cc' in i:
-#           if t != 0:
-#               return (model.var_reales[i, t] >= model.binarias['B_bat_c', t] -
-#                       model.binarias['B_bat_c', t - 1])
-#           else:
-#               return pyo.Constraint.Skip
-#       else:
-#           return pyo.Constraint.Skip
-#
-#
-#   model.conteo_ciclos_lineal_carga_2 = pyo.Constraint(
-#       model.variables, model.times, rule=conteo_ciclos_lineal_carga_dos)
-#
-#   def max_ciclos_carga_descarga(model, i, t):
-#       """
-#       Restricción que controla el número 
-#       máximo de ciclos de carga y descarga
-#       para la batería
-#       """
-#       if 'n_dc' in i:
-#           return (model.var_reales[i, t] <=
-#                   model.restriccion['max_ciclos_descarga'])
-#       elif 'n_cc' in i:
-#           return (model.var_reales[i, t] <=
-#                   model.restriccion['max_ciclos_carga'])
-#       else:
-#           return pyo.Constraint.Skip
-#
-#
-#   model.max_ciclos_carga_descarga_ = pyo.Constraint(
-#       model.variables, model.times, rule=max_ciclos_carga_descarga)
+    model.conteo_ciclos_lineal_descarga_1 = pyo.Constraint(
+        model.variables, model.times, rule=conteo_ciclos_lineal_descarga)
+
+
+    def conteo_ciclos_lineal_descarga_dos(model, i, t):
+        """
+        Restricción auxiliar de capacidad 
+        mínima de la batería sirve para 
+        mantener el modelo de tipo líneal
+        """
+        if 'n_dc' in i:
+            return (model.var_reales[i, t] <= model.restriccion['val_aux'])
+        elif 'z_dc' in i:
+            if t != 0:
+                return model.var_reales[i, t] >= model.binarias[
+                    'B_bat_d', t] - model.binarias['B_bat_d', t - 1]
+            else:
+                return pyo.Constraint.Skip
+        else:
+            return pyo.Constraint.Skip
+
+
+    model.conteo_ciclos_lineal_descarga_2 = pyo.Constraint(
+        model.variables, model.times, rule=conteo_ciclos_lineal_descarga_dos)
+
+    def conteo_ciclos_lineal_carga(model, i, t):
+        """
+        Restricción auxiliar de capacidad 
+        mínima de la batería sirve para 
+        mantener el modelo de tipo líneal
+        """
+        if 'n_cc' in i:
+            return (model.var_reales[i, t] == sum(model.var_reales['z_cc', t]
+                                                for t in model.times))
+        elif 'z_cc' in i:
+            return model.var_reales[i, t] >= 0
+        else:
+            return pyo.Constraint.Skip
+
+
+    model.conteo_ciclos_lineal_carga_1 = pyo.Constraint(
+        model.variables, model.times, rule=conteo_ciclos_lineal_carga)
+   def conteo_ciclos_lineal_carga_dos(model, i, t):
+       """
+       Restricción auxiliar de capacidad 
+       mínima de la batería sirve para 
+       mantener el modelo de tipo líneal
+       """
+       if 'n_cc' in i:
+           return (model.var_reales[i, t] <= model.restriccion['val_aux'])
+       elif 'z_cc' in i:
+           if t != 0:
+               return (model.var_reales[i, t] >= model.binarias['B_bat_c', t] -
+                       model.binarias['B_bat_c', t - 1])
+           else:
+               return pyo.Constraint.Skip
+       else:
+           return pyo.Constraint.Skip
+
+
+   model.conteo_ciclos_lineal_carga_2 = pyo.Constraint(
+       model.variables, model.times, rule=conteo_ciclos_lineal_carga_dos)
+
+   def max_ciclos_carga_descarga(model, i, t):
+       """
+       Restricción que controla el número 
+       máximo de ciclos de carga y descarga
+       para la batería
+       """
+       if 'n_dc' in i:
+           return (model.var_reales[i, t] <=
+                   model.restriccion['max_ciclos_descarga'])
+       elif 'n_cc' in i:
+           return (model.var_reales[i, t] <=
+                   model.restriccion['max_ciclos_carga'])
+       else:
+           return pyo.Constraint.Skip
+
+
+   model.max_ciclos_carga_descarga_ = pyo.Constraint(
+       model.variables, model.times, rule=max_ciclos_carga_descarga)
 
     return model, generacion_pv, generacion_diesel, load
