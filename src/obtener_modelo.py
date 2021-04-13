@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 from pyomo.opt import *
 
-def modelo(bd, n_pv, n_dg, p_dg, min_dg, efi_dg, lpsp, p_bat):
+def modelo(bd, n_pv, n_dg, p_dg, min_dg, efi_dg, lpsp, p_bat, cond_init_bat):
     """
     Par aobtener el modelo de optimización
     """
@@ -74,7 +74,7 @@ def modelo(bd, n_pv, n_dg, p_dg, min_dg, efi_dg, lpsp, p_bat):
         'val_aux_bateria': val_aux_bateria,
         'max_lpsp': max_lpsp,
         'self_discharge_coefficient': self_discharge_coefficient,
-        'PB_rate_kW': PB_rate_kW,
+        'PB_rate_kW': cond_init_bat,
         'SOC_min': SOC_min,
         'SOC_max': SOC_max,
         'SOC_inicial': SOC_inicial,
@@ -142,7 +142,7 @@ def modelo(bd, n_pv, n_dg, p_dg, min_dg, efi_dg, lpsp, p_bat):
 
     model.var_reales = pyo.Var(model.variables, model.times, within=pyo.NonNegativeReals, initialize=0)
 
-    model.soc_t = pyo.Var(model.SOC, model.times, within=pyo.NonNegativeReals, initialize=0)
+    model.soc_t = pyo.Var(model.SOC, model.times, within=pyo.NonNegativeReals, initialize=model.dict_restricciones['PB_rate_kW'])
 
 
     # Función objetivo: minimizar el costo de la energía
