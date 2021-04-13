@@ -142,7 +142,7 @@ def modelo(bd, n_pv, n_dg, p_dg, min_dg, efi_dg, lpsp, p_bat, cond_init_bat):
 
     model.var_reales = pyo.Var(model.variables, model.times, within=pyo.NonNegativeReals, initialize=0)
 
-    model.soc_t = pyo.Var(model.SOC, model.times, within=pyo.NonNegativeReals, initialize=model.dict_restricciones['PB_rate_kW'])
+    model.soc_t = pyo.Var(model.SOC, model.times, within=pyo.NonNegativeReals, initialize=model.restricciones['PB_rate_kW'])
 
 
     # Función objetivo: minimizar el costo de la energía
