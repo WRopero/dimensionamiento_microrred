@@ -105,10 +105,11 @@ def resultado(load, generacion_pv, model,generacion_diesel):
         res_1 = pd.concat([res_1, recurso_carga],axis=1)
         res_2 = pd.DataFrame([resultados_control])
 
-        print(model.max_ciclos_carga_descarga_lpsp.display())
+        
         return res_1, res_2
 
     parametros_control = _resultados(model, demanda_total, recurso_carga)[1]
     tabla_resultados = _resultados(model, demanda_total, recurso_carga)[0]
+    model.max_ciclos_carga_descarga_lpsp.display()
 
     return parametros_control, tabla_resultados
