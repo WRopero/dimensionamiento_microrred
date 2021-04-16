@@ -28,6 +28,14 @@ def modelo(bd, n_pv, n_dg, p_dg, min_dg, efi_dg, lpsp, p_bat, cond_init_bat):
     # Potencia Diésel
     # Datos diesel
     P_diesel_rate = p_dg*n_dg*efi_dg  
+
+
+    generacion_diesel = {
+        i: round(t.diesel(efi_dg, p_dg, n_dg),4)
+        for i in range(len(load))
+    }
+
+
     # % mínimo diésel
     per_min_dg = min_dg
 
@@ -436,4 +444,4 @@ def modelo(bd, n_pv, n_dg, p_dg, min_dg, efi_dg, lpsp, p_bat, cond_init_bat):
         sum(model.Demanda[t]
             for t in model.times) <= model.restriccion['max_lpsp'])            
 
-    return model, generacion_pv, load
+    return model, generacion_pv,generacion_diesel, load
