@@ -38,8 +38,8 @@ def resultado(load, generacion_pv, model,generacion_diesel):
         p_ens_result = []
         LPSP_result = []
         SOC_result = []
-        n_cc_result = []
-        n_dc_result = []
+        p_bat_pv_result = []
+        p_bat_dg_result = []
         B_diesel_result = []
         B_bat_d_result = []
         B_bat_c_result = []
@@ -61,10 +61,10 @@ def resultado(load, generacion_pv, model,generacion_diesel):
                 Ebat_d_result.append(v[1].value)
             elif uni == 'P_ens':
                 p_ens_result.append(v[1].value)
-            elif uni == 'n_cc':
-                n_cc_result.append(v[1].value)
-            elif uni == 'n_dc':
-                n_dc_result.append(v[1].value)
+            elif uni == 'p_bat_pv':
+                p_bat_pv_result.append(v[1].value)
+            elif uni == 'p_bat_dg':
+                p_bat_dg_result.append(v[1].value)
             #elif uni == 'EMAX_c':
             #    EMAX_c_result.append(v[1].value)
             #elif uni == 'EMAX_d':
@@ -97,8 +97,9 @@ def resultado(load, generacion_pv, model,generacion_diesel):
             'energia_descarga_bateria': Ebat_d_result,
             'bin_bat_descarga': B_bat_d_result,
             'energia_ENS': p_ens_result,
-            'SOC(t)_bateria': SOC_result
-            #,
+            'SOC(t)_bateria': SOC_result,
+            'p_bat_pv':p_bat_pv_result,
+            'p_bat_dg':p_bat_dg_result
             #'EMAX_c': EMAX_c_result,
             #'EMAX_d': EMAX_d_result,
             #'Epv_disponible': Epv_dis_result
@@ -106,10 +107,8 @@ def resultado(load, generacion_pv, model,generacion_diesel):
 
         resultados_control = {
             'ENS': round(sum(p_ens_result), 4),
-            'LPSP(%)': round(sum(p_ens_result) / demanda_total, 4) * 100,
-            'ciclos_carga': n_cc_result[0],
-            'ciclos_descarga': n_dc_result[0]
-        }
+            'LPSP(%)': round(sum(p_ens_result) / demanda_total, 4) * 100}
+
         res_1 = pd.DataFrame(resultados_energia)
         res_1['suma_pv_dg_bat_descarga'] = res_1['energia_PV'] + res_1[
             'energia_Dg'] + res_1['energia_descarga_bateria']
