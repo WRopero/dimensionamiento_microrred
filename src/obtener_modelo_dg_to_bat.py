@@ -99,8 +99,7 @@ def modelo(bd, n_pv, n_dg, p_dg, min_dg, efi_dg, lpsp, p_bat, cond_init_bat):
 
     # Variables de decisión
     decision_var = [
-        'Pv', 'Dg', 'P_ens', 'Ebat_c', 'Ebat_d', 'n_dc', 'z_dc', 'n_cc', 'z_cc','EMAX_d','EMAX_c', 'Epv_dis'
-    ]
+        'Pv', 'Dg', 'P_ens', 'Ebat_c', 'Ebat_d', 'p_bat_dg', 'z_dc', 'p_bat_pv', 'z_cc']
     decision_var_SOC = ['SOC_t']
     decision_var_bin = ['B_diesel', 'B_bat_d', 'B_bat_c']
 
@@ -156,20 +155,33 @@ def modelo(bd, n_pv, n_dg, p_dg, min_dg, efi_dg, lpsp, p_bat, cond_init_bat):
         Función Objetivo: Minimizar el costo de
         la energía entregada a la carga
         """
-        return sum( model.costos['Pv']*model.var_reales['Pv',t] +
-                        model.costos['Dg']*model.var_reales['Dg',t] +
+        return sum( model.costos['Pv']*(model.var_reales['Pv',t] + 
+                        model.var_reales['pv_bat_pv',t]) +
+                        model.costos['Dg']*(model.var_reales['Dg',t] + 
+                        model.var_reales['p_bat_dg',t]) +
                         model.costos['Ebat_d']*model.var_reales['Ebat_d',t] +
                         model.costos['P_ens']*model.var_reales['P_ens',t]            
                         for t in model.times)
 
     model.generation_cost = pyo.Objective(rule = obj_rule, sense = pyo.minimize)
-
+    
+    
 
     #Restricciones
+    def _balance_energia_bateria(model, t):
+    
+
+        """
+        Restricción de cumplimiento de la demanda
+        """
+        return (model.var_reales['pv_bat_pv',t] + 
+                model.var_reales['pv_bat_dg',t]*model.restriccion['efficiency_inversor'] == model.var_reales['Ebat_c',t])
+
+    model.D_bateria_constraint = pyo.Constraint(model.times, rule=_balance_energia_bateria)
 
     def demand_rule(model, t):
         """
-        Restricción de cumplimiento de la demanda
+        Restricción de balance de energía que se envia a la batería
         """
 
         return (model.var_reales['Pv', t] + model.var_reales['Dg', t] +
@@ -187,7 +199,7 @@ def modelo(bd, n_pv, n_dg, p_dg, min_dg, efi_dg, lpsp, p_bat, cond_init_bat):
 
 
         if 'Dg' in i:
-            return model.var_reales[i, t] >= model.binarias[
+            return (model.var_reales[i, t] + model.var_reales['pv_bat_dg',t]) >= model.binarias[
                 'B_diesel', t] * model.restriccion['P_diesel_rate'] * model.restriccion['min_dg']
         else:
             return pyo.Constraint.Skip
@@ -203,7 +215,7 @@ def modelo(bd, n_pv, n_dg, p_dg, min_dg, efi_dg, lpsp, p_bat, cond_init_bat):
         Sirve para mantener el modelo de tipo líneal
         """
         if 'Dg' in i:
-            return model.var_reales[i, t] <= model.restriccion[
+            return (model.var_reales[i, t] + model.var_reales['pv_bat_dg',t]) <= model.restriccion[
                 'val_aux'] * model.binarias['B_diesel', t]
         else:
             return pyo.Constraint.Skip
@@ -221,9 +233,9 @@ def modelo(bd, n_pv, n_dg, p_dg, min_dg, efi_dg, lpsp, p_bat, cond_init_bat):
         """
 
         if 'Pv' in i:
-            return model.var_reales[i, t] <= model.cap_pv[t]
+            return (model.var_reales[i, t] + model.var_reales['pv_bat_pv',t]) <= model.cap_pv[t] 
         elif 'Dg' in i:
-            return model.var_reales[i, t] <= model.restriccion['P_diesel_rate']  # *model.binaria[i,t]
+            return (model.var_reales[i, t] + model.var_reales['pv_bat_dg',t] ) <= model.restriccion['P_diesel_rate']  # *model.binaria[i,t]
         else:
             return pyo.Constraint.Skip
 
@@ -307,24 +319,28 @@ def modelo(bd, n_pv, n_dg, p_dg, min_dg, efi_dg, lpsp, p_bat, cond_init_bat):
                                                 rule=state_of_charge_equal)
 
 
-    def charge_only_pv_to_bat(model, i, t):
+    def charge_dg_pv_to_bat(model, i, t):
         """
         Energía con la que se cargara la batería
         Se tiene en cuenta solo la energía que sobre del panel fotovoltaico
         después de suplir la carga
         """
-        if 'Ebat_c' in i:
+        if 'p_bat_pv' in i:
 
             return model.var_reales[i, t] <= (model.cap_pv[t] -
                                             model.var_reales['Pv', t])
+        elif 'p_bat_dg' in i:
+
+            return model.var_reales[i, t] <= (model.restriccion['P_diesel_rate'] - 
+                                            model.var_reales['Dg', t])
 
         else:
             return pyo.Constraint.Skip
 
 
-    model.charging_only_pv_to_bat = pyo.Constraint(model.variables,
+    model.charging_dg_pv_to_bat = pyo.Constraint(model.variables,
                                                 model.times,
-                                                rule=charge_only_pv_to_bat)
+                                                rule=charge_dg_pv_to_bat)
 
     def battery_capacity_min_rule_carga(model, i, t):
         """
