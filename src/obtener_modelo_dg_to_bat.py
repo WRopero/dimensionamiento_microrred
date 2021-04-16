@@ -156,7 +156,7 @@ def modelo(bd, n_pv, n_dg, p_dg, min_dg, efi_dg, lpsp, p_bat, cond_init_bat):
         la energía entregada a la carga
         """
         return sum( model.costos['Pv']*(model.var_reales['Pv',t] + 
-                        model.var_reales['pv_bat_pv',t]) +
+                        model.var_reales['p_bat_pv',t]) +
                         model.costos['Dg']*(model.var_reales['Dg',t] + 
                         model.var_reales['p_bat_dg',t]) +
                         model.costos['Ebat_d']*model.var_reales['Ebat_d',t] +
@@ -174,8 +174,8 @@ def modelo(bd, n_pv, n_dg, p_dg, min_dg, efi_dg, lpsp, p_bat, cond_init_bat):
         """
         Restricción de cumplimiento de la demanda
         """
-        return (model.var_reales['pv_bat_pv',t] + 
-                model.var_reales['pv_bat_dg',t]*model.restriccion['efficiency_inversor'] == model.var_reales['Ebat_c',t])
+        return (model.var_reales['p_bat_pv',t] + 
+                model.var_reales['p_bat_dg',t]*model.restriccion['efficiency_inversor'] == model.var_reales['Ebat_c',t])
 
     model.D_bateria_constraint = pyo.Constraint(model.times, rule=_balance_energia_bateria)
 
@@ -199,7 +199,7 @@ def modelo(bd, n_pv, n_dg, p_dg, min_dg, efi_dg, lpsp, p_bat, cond_init_bat):
 
 
         if 'Dg' in i:
-            return (model.var_reales[i, t] + model.var_reales['pv_bat_dg',t]) >= model.binarias[
+            return (model.var_reales[i, t] + model.var_reales['p_bat_dg',t]) >= model.binarias[
                 'B_diesel', t] * model.restriccion['P_diesel_rate'] * model.restriccion['min_dg']
         else:
             return pyo.Constraint.Skip
@@ -215,7 +215,7 @@ def modelo(bd, n_pv, n_dg, p_dg, min_dg, efi_dg, lpsp, p_bat, cond_init_bat):
         Sirve para mantener el modelo de tipo líneal
         """
         if 'Dg' in i:
-            return (model.var_reales[i, t] + model.var_reales['pv_bat_dg',t]) <= model.restriccion[
+            return (model.var_reales[i, t] + model.var_reales['p_bat_dg',t]) <= model.restriccion[
                 'val_aux'] * model.binarias['B_diesel', t]
         else:
             return pyo.Constraint.Skip
@@ -233,9 +233,9 @@ def modelo(bd, n_pv, n_dg, p_dg, min_dg, efi_dg, lpsp, p_bat, cond_init_bat):
         """
 
         if 'Pv' in i:
-            return (model.var_reales[i, t] + model.var_reales['pv_bat_pv',t]) <= model.cap_pv[t] 
+            return (model.var_reales[i, t] + model.var_reales['p_bat_pv',t]) <= model.cap_pv[t] 
         elif 'Dg' in i:
-            return (model.var_reales[i, t] + model.var_reales['pv_bat_dg',t] ) <= model.restriccion['P_diesel_rate']  # *model.binaria[i,t]
+            return (model.var_reales[i, t] + model.var_reales['p_bat_dg',t] ) <= model.restriccion['P_diesel_rate']  # *model.binaria[i,t]
         else:
             return pyo.Constraint.Skip
 
