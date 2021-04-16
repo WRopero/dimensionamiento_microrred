@@ -43,10 +43,7 @@ def resultado(load, generacion_pv, model,generacion_diesel):
         B_diesel_result = []
         B_bat_d_result = []
         B_bat_c_result = []
-        
-        zcc_result = []
-        zcd_result = []
-        Epv_dis_result= []
+
 
         # Ciclo que obtiene el valor de cada resultado enlas iteraciones del modelo
         for v in model.var_reales.items():
@@ -64,12 +61,7 @@ def resultado(load, generacion_pv, model,generacion_diesel):
             elif uni == 'p_bat_pv':
                 p_bat_pv_result.append(v[1].value)
             elif uni == 'p_bat_dg':
-                p_bat_dg_result.append(v[1].value)
-            elif uni == 'z_cc':
-                zcc_result.append(v[1].value)
-            elif uni == 'z_cd':
-                zcd_result.append(v[1].value)
-            #elif uni == 'Epv_dis':
+                p_bat_dg_result.append(v[1].value)            #elif uni == 'Epv_dis':
             #    Epv_dis_result.append(v[1].value)
             else:
                 pass
@@ -99,9 +91,7 @@ def resultado(load, generacion_pv, model,generacion_diesel):
             'energia_ENS': p_ens_result,
             'SOC(t)_bateria': SOC_result,
             'p_bat_pv':p_bat_pv_result,
-            'p_bat_dg':p_bat_dg_result,
-            'zcc': zcc_result,
-            'zcd': zcd_result
+            'p_bat_dg':p_bat_dg_result
             #'Epv_disponible': Epv_dis_result
         }
 
