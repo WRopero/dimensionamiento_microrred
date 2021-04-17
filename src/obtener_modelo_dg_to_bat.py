@@ -128,17 +128,17 @@ def modelo(bd, n_pv, n_dg, p_dg, min_dg, efi_dg, lpsp, p_bat, cond_init_bat):
     ###################################################################################
     ## Parámetros y variables
     #inicializo parámetros de demanda a cubrir
-    model.Demanda = pyo.Param(model.times, initialize = load)
+    model.Demanda = pyo.Param(model.times, initialize = load,mutable=True)
     #Inicializo parámetros de costos
-    model.costos = pyo.Param(model.variables, initialize = dict_cost )
+    model.costos = pyo.Param(model.variables, initialize = dict_cost ,mutable=True)
     #Parámetros de Capacidad disponible en energía
-    model.cap_pv = pyo.Param(model.times, initialize = generacion_pv)
+    model.cap_pv = pyo.Param(model.times, initialize = generacion_pv,mutable=True)
     #model.cap_dg = pyo.Param(model.times, initialize = generacion_diesel)
     #model.cap_bat = pyo.Param(model.times, initialize = g_bat) --- Pendiente de modelar.
 
     #Parámetros de restricciones
 
-    model.restriccion = pyo.Param(model.restricciones, initialize = dict_restricciones)
+    model.restriccion = pyo.Param(model.restricciones, initialize = dict_restricciones,mutable=True)
 
     #####################################################################################
     ## Variables
