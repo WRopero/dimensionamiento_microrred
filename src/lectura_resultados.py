@@ -1,6 +1,6 @@
 import pandas as pd
 
-def resultado(load, generacion_pv, model,generacion_diesel):
+def resultado(load, generacion_pv, model):
     # Realizado para unir lso datos de recurso disponible y carga (load)
     carga = pd.DataFrame([load]).T
     carga.columns = ['load']
@@ -8,10 +8,7 @@ def resultado(load, generacion_pv, model,generacion_diesel):
     rescurso_pv = pd.DataFrame([generacion_pv]).T
     rescurso_pv.columns = ['recurso_pv_dis']
 
-    recurso_diesel = pd.DataFrame([generacion_diesel]).T
-    recurso_diesel.columns = ['recurso_diesel_dis']
-
-    recurso_carga = pd.concat([carga, rescurso_pv, recurso_diesel],axis=1)
+    recurso_carga = pd.concat([carga, rescurso_pv],axis=1)
 
     demanda_total = sum(load.values())
 

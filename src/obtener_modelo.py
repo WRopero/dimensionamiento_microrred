@@ -1,14 +1,30 @@
-import tecnologias as t
-import pyomo.environ as pyo
 import pandas as pd
 import numpy as np
 from pyomo.opt import *
+import src.tecnologias as t
+import pyomo.environ as pyo
+import sys
+import warnings
+warnings.filterwarnings("ignore")
+from time import time
+import os
 
-def modelo(bd, n_pv, n_dg, p_dg, min_dg, efi_dg, lpsp, p_bat, cond_init_bat):
+def modelo(bd=None, 
+			parametros=None, 
+				parametros_otros = None,
+					costos = None):
     """
     Par aobtener el modelo de optimización
     """
 
+    n_pv=parametros['n_pv']
+    n_dg=parametros['n_dg']
+    p_dg=parametros['p_dg'] 
+    min_dg=parametros['min_dg']
+    efi_dg=parametros['efi_dg'] 
+    lpsp=parametros['lpsp']
+    p_bat=parametros['p_bat']
+    cond_init_bat=parametros['cond_init_bat']
 
     temperatura = bd[['Outside Temperature Impute C']].to_dict()["Outside Temperature Impute C"]
     dates = bd[['hora', 'dia', 'mes']]
@@ -18,54 +34,46 @@ def modelo(bd, n_pv, n_dg, p_dg, min_dg, efi_dg, lpsp, p_bat, cond_init_bat):
     load = {i: round(carga[i],4) for i in range(len(carga))}
     demanda_total = sum(load.values())
     # Potencia solar
-    
+
     Npv = n_pv
     generacion_pv = {
         i: round(t.panel(gi_pv[i],  Npv, temperatura[i]),4)
         for i in range(len(gi_pv))
     }
-    ############################################################################################
+
     # Potencia Diésel
     # Datos diesel
-    eficiencia_dg = efi_dg
-    Ndg =  n_dg
-    potencia = p_dg
-    generacion_diesel = {
-        i: round(t.diesel(eficiencia_dg, potencia, Ndg),4)
-        for i in range(len(load))
-    }
-    ############################################################################################
+    P_diesel_rate = p_dg*n_dg*efi_dg  
+
+    # % mínimo diésel
+    per_min_dg = min_dg
+
     # Parámetros generales de restricción
     # Máxima LPSP pérmitida en porcentaje %
     max_lpsp = lpsp
 
     # Parámetro penalizada auxiliar
-    val_aux_penalizado = potencia*Ndg
-    val_aux_bateria = 0.1
-
-    # % mínimo diésel
-    per_min_dg = min_dg
+    val_aux_penalizado = P_diesel_rate
+    val_aux_bateria = parametros_otros['val_aux_bateria']
 
     # Solo batería restricciones
-    per_min_bat = 0.2  # Mínimo porcentaje permitido de la batería
-    PB_rate_kW = p_bat  # Potencia nominal de la batería
-    SOC_min = PB_rate_kW * per_min_bat  # Capacidad mínima de potencia permitida
-    SOC_max = PB_rate_kW * 1  # Capacidad máxima permitida en la batería
-    SOC_inicial = PB_rate_kW * 1 # Estado inicial de la batería en potenciá (100% del PB_rate_kW)
-    max_ciclos_descarga = 100000  # Máximo número de ciclos de carga para la batería
-    max_ciclos_carga = 100000  # Mínimo ciclos de carga para la batería
-    self_discharge_coefficient = round(0.2 / 24, 4) # Coeficiente de autodescarga para una hora
-    efficiency_inversor = 0.95 # Eficiencia del inversor, se utiliza par ala conversión DC/AC
-    efficiency_charging = 0.90  # Eficiencia en el estado de carga
-    C_rate = 5 # Coeficiente para determinar al máximo de energía para la carga y la descarga
-    Emax = PB_rate_kW / C_rate # Energía máxima que puede ser descargada o cargada de la batería
+    per_min_bat = 1-parametros_otros['DOD']  # Mínimo porcentaje permitido de la batería
+    SOC_min = p_bat * per_min_bat  # Capacidad mínima de potencia permitida
+    SOC_max = p_bat * parametros_otros['n_bat']  # Capacidad máxima permitida en la batería
+    SOC_inicial = p_bat  # Estado inicial de la batería en potenciá (100% del PB_rate_kW)
+    max_ciclos_descarga = parametros_otros['max_ciclos_descarga'] # Máximo número de ciclos de carga para la batería
+
+    self_discharge_coefficient = round(parametros_otros['self_dis_coef'] / 24, 4) # Coeficiente de autodescarga para una hora
+    efficiency_inversor = parametros_otros['efficiency_inversor'] # Eficiencia del inversor, se utiliza par ala conversión DC/AC
+    efficiency_charging = parametros_otros['efficiency_charging']  # Eficiencia en el estado de carga
+    C_rate = parametros_otros['C_rate'] # Coeficiente para determinar al máximo de energía para la carga y la descarga
+    Emax = p_bat / C_rate # Energía máxima que puede ser descargada o cargada de la batería
 
     parametros_rest = [
         'min_dg', 'min_bat', 'val_aux', 'val_aux_bateria', 'max_lpsp',
         'PB_rate_kW', 'SOC_min', 'SOC_max', 'SOC_inicial', 'max_ciclos_carga',
         'max_ciclos_descarga', 'self_discharge_coefficient', 'efficiency_charging',
-        'efficiency_inversor', 'Emax'
-    ]
+        'efficiency_inversor', 'Emax', 'P_diesel_rate']
 
     dict_restricciones = {
         'min_dg': per_min_dg,
@@ -77,25 +85,24 @@ def modelo(bd, n_pv, n_dg, p_dg, min_dg, efi_dg, lpsp, p_bat, cond_init_bat):
         'PB_rate_kW': cond_init_bat,
         'SOC_min': SOC_min,
         'SOC_max': SOC_max,
-        'SOC_inicial': SOC_inicial,
-        'max_ciclos_carga': max_ciclos_carga,
+        'SOC_inicial': SOC_inicial,	    
         'max_ciclos_descarga': max_ciclos_descarga,
         'efficiency_inversor': efficiency_inversor,
         'efficiency_charging': efficiency_charging,
-        'Emax': Emax
+        'Emax': Emax,
+        'P_diesel_rate':P_diesel_rate
     }
-
-    ############################################################################################
     # Creando diccionario de costos
     # Costos
-    cost_pv = 700
-    cost_dg = 3000
-    cost_bat = 800
+    cost_pv = costos['cost_pv']
+    cost_dg = costos['cost_dg']
+    cost_bat = costos['cost_bat']
+    cost_pens = costos['cost_pens']	
 
     # Variables de decisión
-    decision_var = [
-        'Pv', 'Dg', 'P_ens', 'Ebat_c', 'Ebat_d', 'n_dc', 'z_dc', 'n_cc', 'z_cc','EMAX_d','EMAX_c', 'Epv_dis'
-    ]
+    decision_var = ['Pv', 'Dg', 'P_ens', 
+                    'Ebat_c', 'Ebat_d', 'p_bat_dg',
+                     'z_dc', 'p_bat_pv', 'z_cc']
     decision_var_SOC = ['SOC_t']
     decision_var_bin = ['B_diesel', 'B_bat_d', 'B_bat_c']
 
@@ -104,11 +111,9 @@ def modelo(bd, n_pv, n_dg, p_dg, min_dg, efi_dg, lpsp, p_bat, cond_init_bat):
         'Pv': cost_pv,
         'Dg': cost_dg,
         'Ebat_d': cost_bat,
-        'P_ens': 1000000 * cost_dg
+        'P_ens': cost_pens
     }
-
     #INICIO DE LA OPTIMIZACION
-    ###############################################################################
     model = pyo.ConcreteModel(name = "Dimensionamiento de microrredes")
     #Veces que se correra - Cantidad de periodos a cubrir la carga.
     model.times = pyo.Set(initialize = [i for i in range(len(load))])
@@ -129,21 +134,31 @@ def modelo(bd, n_pv, n_dg, p_dg, min_dg, efi_dg, lpsp, p_bat, cond_init_bat):
     model.costos = pyo.Param(model.variables, initialize = dict_cost )
     #Parámetros de Capacidad disponible en energía
     model.cap_pv = pyo.Param(model.times, initialize = generacion_pv)
-    model.cap_dg = pyo.Param(model.times, initialize = generacion_diesel)
+    #model.cap_dg = pyo.Param(model.times, initialize = generacion_diesel)
     #model.cap_bat = pyo.Param(model.times, initialize = g_bat) --- Pendiente de modelar.
 
     #Parámetros de restricciones
 
-    model.restriccion = pyo.Param(model.restricciones, initialize = dict_restricciones)
+    model.restriccion = pyo.Param(model.restricciones, 
+        initialize = dict_restricciones)
 
     #####################################################################################
     ## Variables
-    model.binarias = pyo.Var(model.bin, model.times, domain=pyo.Boolean, bounds=(0,1), initialize=0)
+    model.binarias = pyo.Var(model.bin, 
+        model.times, 
+        domain=pyo.Boolean, 
+        bounds=(0,1), 
+        initialize=0)
 
-    model.var_reales = pyo.Var(model.variables, model.times, within=pyo.NonNegativeReals, initialize=0)
+    model.var_reales = pyo.Var(model.variables, 
+        model.times, 
+        within=pyo.NonNegativeReals, 
+        initialize=0)
 
-    model.soc_t = pyo.Var(model.SOC, model.times, within=pyo.NonNegativeReals, initialize=dict_restricciones['PB_rate_kW'])
-
+    model.soc_t = pyo.Var(model.SOC, 
+        model.times, 
+        within=pyo.NonNegativeReals, 
+        initialize=dict_restricciones['PB_rate_kW'])
 
     # Función objetivo: minimizar el costo de la energía
     def obj_rule(model):
@@ -151,70 +166,51 @@ def modelo(bd, n_pv, n_dg, p_dg, min_dg, efi_dg, lpsp, p_bat, cond_init_bat):
         Función Objetivo: Minimizar el costo de
         la energía entregada a la carga
         """
-        return sum( model.costos['Pv']*model.var_reales['Pv',t] +
-                        model.costos['Dg']*model.var_reales['Dg',t] +
+        return sum( model.costos['Pv']*(model.var_reales['Pv',t] + 
+                        model.var_reales['p_bat_pv',t]) +
+                        model.costos['Dg']*(model.var_reales['Dg',t] + 
+                        model.var_reales['p_bat_dg',t]) +
                         model.costos['Ebat_d']*model.var_reales['Ebat_d',t] +
                         model.costos['P_ens']*model.var_reales['P_ens',t]            
                         for t in model.times)
 
     model.generation_cost = pyo.Objective(rule = obj_rule, sense = pyo.minimize)
 
-
     #Restricciones
-
-    def demand_rule(model, t):
+    def _balance_energia_bateria(model, t):
         """
         Restricción de cumplimiento de la demanda
         """
+        return (model.var_reales['p_bat_pv',t] + 
+                model.var_reales['p_bat_dg',t]*model.restriccion['efficiency_inversor'] == model.var_reales['Ebat_c',t])
 
+    model.D_bateria_constraint = pyo.Constraint(model.times, rule=_balance_energia_bateria)
+
+    def demand_rule(model, t):
+        """
+        Restricción de balance de energía que se envia a la batería
+        """
         return (model.var_reales['Pv', t] + model.var_reales['Dg', t] +
                 model.var_reales['Ebat_d', t] +
                 model.var_reales['P_ens', t]) == model.Demanda[t]
 
-
     model.Dconstraint = pyo.Constraint(model.times, rule=demand_rule)
 
-
-#    def lpsp_rule(model, t):
-#        """
-#        Restricción de la máxima probabilidad de 
-#        pérdida de carga pérmitida (LPSP)
-#        """
-#        if model.Demanda[t] <= 0:
-#            return pyo.Constraint.Skip
-#        else:
-#            return sum(model.var_reales['P_ens', t] for t in model.times) / sum(
-#                model.Demanda[t]
-#                for t in model.times) <= model.restriccion['max_lpsp']
-#
-#
-#    model.lpsp_Cap_constraint = pyo.Constraint(model.times, rule=lpsp_rule)
-
-
-    def capacity_rule_all_(model, i, t):
+    def capacity_rule_dg_(model, i, t):
         """
             Restricción que me garantiza la energía mínima que
             debe despachar de cada generador o variable de la batería
         """
-
-        if 'P_gf' in i:
-            return model.var_reales[i, t] >= 0
-        elif 'Pv' in i:
-            return model.var_reales[i, t] >= 0
-        elif 'Dg' in i:
-            return model.var_reales[i, t] >= model.binarias[
-                'B_diesel', t] * model.cap_dg[t] * model.restriccion['min_dg']
-        elif 'Ebat_c' in i:
-            return model.var_reales[i, t] >= 0
-        elif 'Ebat_d' in i:
-            return model.var_reales[i, t] >= 0
+        if 'Dg' in i:
+            return (model.var_reales[i, t] + model.var_reales['p_bat_dg',t]) >= model.binarias[
+                'B_diesel', t] * model.restriccion['P_diesel_rate'] * model.restriccion['min_dg']
         else:
             return pyo.Constraint.Skip
 
 
-    model.Cap_constraint_rule_all_ = pyo.Constraint(model.variables,
+    model.Cap_constraint_rule_dg_ = pyo.Constraint(model.variables,
                                                     model.times,
-                                                    rule=capacity_rule_all_)
+                                                    rule=capacity_rule_dg_)
 
     def aux_rule_diesel(model, i, t):
         """
@@ -222,11 +218,10 @@ def modelo(bd, n_pv, n_dg, p_dg, min_dg, efi_dg, lpsp, p_bat, cond_init_bat):
         Sirve para mantener el modelo de tipo líneal
         """
         if 'Dg' in i:
-            return model.var_reales[i, t] <= model.restriccion[
+            return (model.var_reales[i, t] + model.var_reales['p_bat_dg',t]) <= model.restriccion[
                 'val_aux'] * model.binarias['B_diesel', t]
         else:
             return pyo.Constraint.Skip
-
 
     model.aux_constraint = pyo.Constraint(model.variables,
                                         model.times,
@@ -238,14 +233,12 @@ def modelo(bd, n_pv, n_dg, p_dg, min_dg, efi_dg, lpsp, p_bat, cond_init_bat):
             disponible de energía en el 
             sistema X.    
         """
-
         if 'Pv' in i:
-            return model.var_reales[i, t] <= model.cap_pv[t]
+            return (model.var_reales[i, t] + model.var_reales['p_bat_pv',t]) <= model.cap_pv[t] 
         elif 'Dg' in i:
-            return model.var_reales[i, t] <= model.cap_dg[t]  # *model.binaria[i,t]
+            return (model.var_reales[i, t] + model.var_reales['p_bat_dg',t] ) <= model.restriccion['P_diesel_rate']  # *model.binaria[i,t]
         else:
             return pyo.Constraint.Skip
-
 
     model.max_Cap_constraint = pyo.Constraint(model.variables,
                                             model.times,
@@ -271,7 +264,6 @@ def modelo(bd, n_pv, n_dg, p_dg, min_dg, efi_dg, lpsp, p_bat, cond_init_bat):
         else:
             return pyo.Constraint.Skip
 
-
     model.Energy_max_deliver_bat_ = pyo.Constraint(model.variables,
                                                 model.times,
                                                 rule=Energy_max_deliver_bat)
@@ -284,12 +276,10 @@ def modelo(bd, n_pv, n_dg, p_dg, min_dg, efi_dg, lpsp, p_bat, cond_init_bat):
         """
         return model.soc_t['SOC_t', t] >= model.restriccion['SOC_min']
 
-
     model.min_state_of_charge_t = pyo.Constraint(model.times,
                                                 rule=min_state_of_charge)
 
 
-    #
     def max_state_of_charge(model, t):
         """
         Control del máximo estado de carga de la batería
@@ -326,42 +316,28 @@ def modelo(bd, n_pv, n_dg, p_dg, min_dg, efi_dg, lpsp, p_bat, cond_init_bat):
                                                 rule=state_of_charge_equal)
 
 
-    def charge_only_pv_to_bat(model, i, t):
+    def charge_dg_pv_to_bat(model, i, t):
         """
         Energía con la que se cargara la batería
         Se tiene en cuenta solo la energía que sobre del panel fotovoltaico
         después de suplir la carga
         """
-        if 'Ebat_c' in i:
+        if 'p_bat_pv' in i:
 
             return model.var_reales[i, t] <= (model.cap_pv[t] -
                                             model.var_reales['Pv', t])
+        elif 'p_bat_dg' in i:
+
+            return model.var_reales[i, t] <= (model.restriccion['P_diesel_rate'] - 
+                                            model.var_reales['Dg', t])
 
         else:
             return pyo.Constraint.Skip
 
 
-    model.charging_only_pv_to_bat = pyo.Constraint(model.variables,
+    model.charging_dg_pv_to_bat = pyo.Constraint(model.variables,
                                                 model.times,
-                                                rule=charge_only_pv_to_bat)
-
-
-    #def E_only_pv_dis_to_bat(model, i, t):
-    #    """
-    #    Energía con la que se cargara la batería
-    #    Se tiene en cuenta solo la energía que sobre del panel fotovoltaico
-    #    después de suplir la carga
-    #    """
-    #    if 'Ebat_c' in i:
-    #        return model.var_reales['Epv_dis', t] == (model.cap_pv[t] -
-    #                                                  model.var_reales['Pv', t])
-    #    else:
-    #        return pyo.Constraint.Skip
-    #
-    #
-    #model.E_only_pv_dis_to_bat_ = pyo.Constraint(model.variables,
-    #                                             model.times,
-    #                                             rule=E_only_pv_dis_to_bat)
+                                                rule=charge_dg_pv_to_bat)
 
 
     def battery_capacity_min_rule_carga(model, i, t):
@@ -395,6 +371,7 @@ def modelo(bd, n_pv, n_dg, p_dg, min_dg, efi_dg, lpsp, p_bat, cond_init_bat):
                                                 model.times,
                                                 rule=aux_rule_bat_carga)
 
+
     def battery_capacity_min_rule_descarga(model, i, t):
         """
         Restricciones mínimas asociadas a la batería
@@ -426,104 +403,16 @@ def modelo(bd, n_pv, n_dg, p_dg, min_dg, efi_dg, lpsp, p_bat, cond_init_bat):
                                                 model.times,
                                                 rule=aux_rule_bat_descarga)
 
+    #   PARA LAS RESTRICCIONES DE MÄXIMOS CICLOS DE CARGA Y DESCARGA
+    model.max_ciclos_carga_descarga_lpsp = pyo.ConstraintList()
 
-#    def conteo_ciclos_lineal_descarga(model, i, t):
-#        """
-#        Restricción auxiliar de capacidad 
-#        mínima de la batería sirve para 
-#        mantener el modelo de tipo líneal
-#        """
-#        if 'n_dc' in i:
-#            return (model.var_reales[i, t] == sum(model.var_reales['z_dc', t]
-#                                                for t in model.times))
-#        elif 'z_dc' in i:
-#            return model.var_reales[i, t] >= 0
-#        else:
-#            return pyo.Constraint.Skip
-#
-#
-#    model.conteo_ciclos_lineal_descarga_1 = pyo.Constraint(
-#        model.variables, model.times, rule=conteo_ciclos_lineal_descarga)
-#
-#
-#    def conteo_ciclos_lineal_descarga_dos(model, i, t):
-#        """
-#        Restricción auxiliar de capacidad 
-#        mínima de la batería sirve para 
-#        mantener el modelo de tipo líneal
-#        """
-#        if 'n_dc' in i:
-#            return (model.var_reales[i, t] <= model.restriccion['val_aux'])
-#        elif 'z_dc' in i:
-#            if t != 0:
-#                return model.var_reales[i, t] >= model.binarias[
-#                    'B_bat_d', t] - model.binarias['B_bat_d', t - 1]
-#            else:
-#                return pyo.Constraint.Skip
-#        else:
-#            return pyo.Constraint.Skip
-#
-#
-#    model.conteo_ciclos_lineal_descarga_2 = pyo.Constraint(
-#        model.variables, model.times, rule=conteo_ciclos_lineal_descarga_dos)
-#
-#    def conteo_ciclos_lineal_carga(model, i, t):
-#        """
-#        Restricción auxiliar de capacidad 
-#        mínima de la batería sirve para 
-#        mantener el modelo de tipo líneal
-#        """
-#        if 'n_cc' in i:
-#            return (model.var_reales[i, t] == sum(model.var_reales['z_cc', t]
-#                                                for t in model.times))
-#        elif 'z_cc' in i:
-#            return model.var_reales[i, t] >= 0
-#        else:
-#            return pyo.Constraint.Skip
-#
-#
-#    model.conteo_ciclos_lineal_carga_1 = pyo.Constraint(
-#        model.variables, model.times, rule=conteo_ciclos_lineal_carga)
+    model.max_ciclos_carga_descarga_lpsp.add(
+        (sum(model.var_reales['Ebat_d', t]
+            for t in model.times))/model.restriccion['PB_rate_kW'] <= model.restriccion['max_ciclos_descarga'])
 
+    model.max_ciclos_carga_descarga_lpsp.add(
+        sum(model.var_reales['P_ens', t] for t in model.times) /
+        sum(model.Demanda[t]
+            for t in model.times) <= model.restriccion['max_lpsp'])   
 
-#   def conteo_ciclos_lineal_carga_dos(model, i, t):
-#       """
-#       Restricción auxiliar de capacidad 
-#       mínima de la batería sirve para 
-#       mantener el modelo de tipo líneal
-#       """
-#       if 'n_cc' in i:
-#           return (model.var_reales[i, t] <= model.restriccion['val_aux'])
-#       elif 'z_cc' in i:
-#           if t != 0:
-#               return (model.var_reales[i, t] >= model.binarias['B_bat_c', t] -
-#                       model.binarias['B_bat_c', t - 1])
-#           else:
-#               return pyo.Constraint.Skip
-#       else:
-#           return pyo.Constraint.Skip
-#
-#
-#   model.conteo_ciclos_lineal_carga_2 = pyo.Constraint(
-#       model.variables, model.times, rule=conteo_ciclos_lineal_carga_dos)
-#
-#   def max_ciclos_carga_descarga(model, i, t):
-#       """
-#       Restricción que controla el número 
-#       máximo de ciclos de carga y descarga
-#       para la batería
-#       """
-#       if 'n_dc' in i:
-#           return (model.var_reales[i, t] <=
-#                   model.restriccion['max_ciclos_descarga'])
-#       elif 'n_cc' in i:
-#           return (model.var_reales[i, t] <=
-#                   model.restriccion['max_ciclos_carga'])
-#       else:
-#           return pyo.Constraint.Skip
-#
-#
-#   model.max_ciclos_carga_descarga_ = pyo.Constraint(
-#       model.variables, model.times, rule=max_ciclos_carga_descarga)
-
-    return model, generacion_pv, generacion_diesel, load
+    return model, generacion_pv, load
