@@ -1,0 +1,6 @@
+Input ;Symbol;Value
+Life time of the project $(years)$;$R$;20
+Maximum loss of power supply probability $(\%)$;$LPSP^{max}$;5
+Real interest rate $(\%)$;$ir$;8.08
+Cost of energy not supplied $(USD/kWh)$;$cpens$;0.7434
+fiscal_incentive_factor $(\%)$;$\delta$;90.38

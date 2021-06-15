@@ -1,0 +1,17 @@
+Input;Symbol;Value
+Positive battery constant;$Mb$;0.01
+Self-Discharge rate ;$\sigma$;0.2
+Capacity Rate $(h)$;$Crate$;5
+Maximum depth of discharge $(\%)$;$DOD^{max}$;0.5
+Maximum  number of cycles;$cycles^{max}$;3000
+Price per kWh generated $(USD/kWh)$;$cbat$;0.12
+Battery cell capacity $(kWh)$;$Pbat_{cell}$;0.84
+DC system voltage (V);$Vdc_{sist}$;48
+Battery Voltage (V) ;$Vdc_{bc}$;2
+Inverter efficiency $(\%)$;$\eta _{inv}$;95
+$O\&M$ factor of the initial investment $(\%)$;$\rho _{bat}$;2
+Factor of the initial capital cost invested $(\%)$;$\lambda _{bat}$;70
+Lifecycle $(years)$;$Lc_{bat}$;10
+Price per kWh installed $(USD/kWh)$;$cki_{bat}$;61.4
+Discharge efficiency $(\%)$;$\eta _{d}$;100
+Charge efficiency $(\%)$;$\eta _{c}$;90
