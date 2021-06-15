@@ -1,0 +1,9 @@
+Input;Symbol;Value
+Maximum Power  $Wp$;$Ppv_{stc}$;300
+Module Efficiency $(\%)$ ;$\eta _{pv}$;18.33
+$NOCT (\circle^C)$;$NOCT$ ;45
+Price per kWh generated $(USD/kWh)$;$cpv$;0.003
+Photovoltaic derating factor $(\%)$ ;$fpv$;85
+$O\&M$ factor of the initial investment $(\%)$;$\rho _{pv}$;1
+Price per kW installed $(USD/kWh)$;$cki_{pv}$;1.5
+Power Temperature Coefficient $(%/\circle^C)$ ;$\alpha _{p}$;-0.39

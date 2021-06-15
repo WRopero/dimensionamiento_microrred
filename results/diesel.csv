@@ -1,0 +1,12 @@
+Input ;Symbol;Value
+DG Power (kW);$Pdg^{rate}$;10
+Price per kWh installed $(USD/kWh)$;$cki_{dg}$;95.5
+Minimum ratio allowed;$\gamma$;0.9
+Diesel efficiency $(\%)$;$\eta_{dg}$;100
+Price per kWh generated $(USD/kWh)$;$cdg$;0.22
+Factor of the initial capital cost invested $(\%)$;$\lambda _{dg}$;70
+Specific consumption of fuel $(gal/kWh)$;$scf$;0.0974
+Specific consumption of Lubricant $(gal/kWh)$;$scl$; 0.0005 
+Lifecycle $(years)$;$Lc_{dg}$;10
+Average price of Lubricant $(Usd/gal)$;$alc$;21.4
+Average price of fuel $(Usd/gal)$;$afc$;2.4

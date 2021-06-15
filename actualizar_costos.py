@@ -45,11 +45,11 @@ def actualizar_costos(parametros=None, resultados=None, i=None):
     
     lpsp = parametros.loc[i,'lpsp_result']
     
-    if lpsp <1.5:
+    if lpsp <=1.5:
         c_ens = 1532.53
-    elif lpsp >= 1.5 and lpsp < 5:
+    elif lpsp > 1.5 and lpsp <= 5:
         c_ens = 2778.13
-    elif lpsp >= 5 and lpsp < 90:
+    elif lpsp > 5 and lpsp < 90:
         c_ens = 4872.19
     else:
         c_ens = 0
