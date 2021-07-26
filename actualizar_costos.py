@@ -152,7 +152,7 @@ def actualizar_costos(parametros=None, resultados=None, i=None):
     cam = 0.1*(cc+cl)
 
     oym_dg = (cam + cc + cl)*ei 
-    incentivo = 0.9038
+    incentivo = 0.9147
     asc = (((ccpv+ccbat+ccdg)+(rc_bat+rc_dg))*crf + (oym_dg + oym_pv + oym_bat))/trm
     asc_incentivo = ((((ccpv+ccbat)*incentivo+ccdg)+(rc_bat+rc_dg))*crf + (oym_dg + oym_pv + oym_bat))/trm
 

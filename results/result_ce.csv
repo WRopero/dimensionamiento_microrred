@@ -1,23 +1,23 @@
-Parameter;Unit; PV-BAT-DG ; PV-BAT 
-$Npv$;Units; 190.00 ; 420.00 
-$Nbat$;Units; 48.00 ; 96.00 
-$Nbat_{p}$;Units; 2.00 ; 4.00 
-$Ebatn$;$kW$; 40.30 ; 67.20 
-$LC$;$Number$; 229.00 ; 145.00 
-$Pdg$;$kW$; 10.00 ; - 
-$CCpv$;$USD$; 85,500.00 ; 189,000.00 
-$CCbat$;$USD$; 5,826.20 ; 9,710.40 
-$CCdg$;$USD$; 20,411.00 ; - 
-$O\&Mpv$;$USD/year$; 855.00 ; 1,890.00 
-$O\&Mbat$;$USD/year$; 116.50 ; 194.20 
-$O\&Mdg$;$USD/year$; 4,003.00 ; - 
-$RCbat$;$USD$; 2,737.40 ; 4,562.30 
-$RCdg$;$USD$; 9,589.90 ; - 
-$LPSP$;$\%$; 5.00 ; 9.90 
-$CRF$;$\%$; 10.00 ; 10.00 
-$PENS$;$kWh/year$; 1,823.30 ; 3,644.40 
-$Cost_{ENS};$USD/year$; 1,355.40 ; 4,751.60 
-$ASC$;$USD/year$; 17,381.00 ; 22,411.50 
-$LCOE$;$USD/year$; 0.50 ; 0.32 
-$\deltaASC$;$USD/year$; 16,502.40 ; 20,499.90 
-$\deltaLCOE$;$USD/year$; 0.48 ; 0.30 
+Parameter;Unit;PV-BAT-DG;PV-BAT
+$Npv$;Units;190.00;405.00
+$Nbat$;Units;48.00;120.00
+$Nbat_{p}$;Units;2.00;5.00
+$Ebatn$;$kW$;40.32;100.80
+$LC$;$Number$;229.00;116.30
+$Pdg$;$kW$;10.00;-
+$CCpv$;$USD$;85500.00;182250.00
+$CCbat$;$USD$;5826.24;14565.60
+$CCdg$;$USD$;20411.00;-
+$O\&Mpv$;$USD/year$;855.00;1822.50
+$O\&Mbat$;$USD/year$;116.52;291.31
+$O\&Mdg$;$USD/year$;4002.99;-
+$RCbat$;$USD$;2737.40;6843.50
+$RCdg$;$USD$;9589.90;-
+$LPSP$;$\%$;5.00;5.00
+$CRF$;$\%$;10.00;10.00
+$PENS$;$kWh/year$;1823.30;1821.20
+$Cost_{ENS};$USD/year$;1355.44;1353.93
+$ASC$;$USD/year$;17380.97;22479.72
+$LCOE$;$USD/year$;0.50;0.84
+$\deltaASC$;$USD/year$;16502.41;20586.36
+$\deltaLCOE$;$USD/year$;0.48;0.77
