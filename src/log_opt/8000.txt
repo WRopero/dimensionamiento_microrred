@@ -1,0 +1,60 @@
+
+Gurobi 9.1.2 (win64) logging started Wed Jul 28 02:13:45 2021
+
+Changed value of parameter LogFile to C:\Users\Luis Fdo Baquero B\Documents\GitHub\dimensionamiento_microrred\src\log_opt\8000.txt
+   Prev:   Default: 
+Changed value of parameter mipgap to 0.05
+   Prev: 0.0001  Min: 0.0  Max: inf  Default: 0.0001
+Changed value of parameter TimeLimit to 3600.0
+   Prev: inf  Min: 0.0  Max: inf  Default: inf
+Gurobi Optimizer version 9.1.2 build v9.1.2rc0 (win64)
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+Optimize a model with 148922 rows, 113880 columns and 359159 nonzeros
+Model fingerprint: 0xf36ea557
+Variable types: 87600 continuous, 26280 integer (26280 binary)
+Coefficient statistics:
+  Matrix range     [5e-06, 5e+01]
+  Objective range  [1e+01, 2e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [4e-03, 3e+03]
+Presolve removed 81277 rows and 61654 columns
+Presolve time: 1.07s
+Presolved: 67645 rows, 52226 columns, 182301 nonzeros
+Variable types: 34022 continuous, 18204 integer (18204 binary)
+
+Deterministic concurrent LP optimizer: primal and dual simplex
+Showing first log only...
+
+Concurrent spin time: 0.00s
+
+Solved with dual simplex
+
+Root relaxation: objective 1.271911e+08, 20438 iterations, 0.96 seconds
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0 1.2719e+08    0 2048          - 1.2719e+08      -     -   15s
+H    0     0                    1.361539e+08 1.2719e+08  6.58%     -   16s
+H    0     0                    1.361538e+08 1.2719e+08  6.58%     -   17s
+H    0     0                    1.361501e+08 1.2719e+08  6.58%     -   19s
+H    0     0                    1.361118e+08 1.2719e+08  6.55%     -   19s
+     0     0 1.2900e+08    0 1642 1.3611e+08 1.2900e+08  5.22%     -   25s
+H    0     0                    1.323432e+08 1.2900e+08  2.52%     -   25s
+
+Cutting planes:
+  Learned: 2
+  Gomory: 180
+  Implied bound: 1978
+  MIR: 1
+  Flow cover: 902
+  RLT: 868
+  Relax-and-lift: 39
+
+Explored 1 nodes (31218 simplex iterations) in 25.92 seconds
+Thread count was 8 (of 8 available processors)
+
+Solution count 5: 1.32343e+08 1.36112e+08 1.3615e+08 ... 1.36154e+08
+
+Optimal solution found (tolerance 5.00e-02)
+Best objective 1.323432064156e+08, best bound 1.290034384318e+08, gap 2.5236%

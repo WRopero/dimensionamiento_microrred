@@ -1,0 +1,58 @@
+
+Gurobi 9.1.2 (win64) logging started Wed Jul 28 02:32:23 2021
+
+Changed value of parameter LogFile to C:\Users\Luis Fdo Baquero B\Documents\GitHub\dimensionamiento_microrred\src\log_opt\4000.txt
+   Prev:   Default: 
+Changed value of parameter mipgap to 0.05
+   Prev: 0.0001  Min: 0.0  Max: inf  Default: 0.0001
+Changed value of parameter TimeLimit to 3600.0
+   Prev: inf  Min: 0.0  Max: inf  Default: inf
+Gurobi Optimizer version 9.1.2 build v9.1.2rc0 (win64)
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+Optimize a model with 148922 rows, 113880 columns and 359159 nonzeros
+Model fingerprint: 0x0b8b3b4f
+Variable types: 87600 continuous, 26280 integer (26280 binary)
+Coefficient statistics:
+  Matrix range     [5e-06, 5e+01]
+  Objective range  [1e+01, 2e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e-03, 3e+03]
+Presolve removed 82563 rows and 62939 columns
+Presolve time: 0.88s
+Presolved: 66359 rows, 50941 columns, 179237 nonzeros
+Variable types: 33053 continuous, 17888 integer (17888 binary)
+
+Deterministic concurrent LP optimizer: primal and dual simplex
+Showing first log only...
+
+Concurrent spin time: 0.01s
+
+Solved with dual simplex
+
+Root relaxation: objective 1.544351e+08, 21695 iterations, 1.02 seconds
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0 1.5444e+08    0 2068          - 1.5444e+08      -     -   14s
+     0     0 1.5595e+08    0 1991          - 1.5595e+08      -     -   19s
+H    0     0                    1.610493e+08 1.5595e+08  3.16%     -   21s
+     0     0 1.5648e+08    0  748 1.6105e+08 1.5648e+08  2.84%     -   21s
+
+Cutting planes:
+  Learned: 81
+  Gomory: 71
+  Cover: 1
+  Implied bound: 3727
+  MIR: 423
+  Flow cover: 907
+  RLT: 232
+  Relax-and-lift: 272
+
+Explored 1 nodes (32027 simplex iterations) in 21.80 seconds
+Thread count was 8 (of 8 available processors)
+
+Solution count 1: 1.61049e+08 
+
+Optimal solution found (tolerance 5.00e-02)
+Best objective 1.610492672024e+08, best bound 1.564807730218e+08, gap 2.8367%
